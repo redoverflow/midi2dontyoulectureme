@@ -9,12 +9,13 @@
 <body>
     <div style="text-align: center;">
         <h1 style="margin-top: 10px;">MIDI to 🗿</h1>
-        <div style="position: absolute; left: 50%; transform: translateX(-50%); width: 50%; max-width: 85%;">
+        <div style="position: absolute; left: 50%; transform: translateX(-50%); max-width: 85%; min-width: 50%;">
             <div class="mb-3">
                 <label for="midifile" class="form-label">Pick a MIDI file to convert</label>
                 <input class="form-control" type="file" id="midifile" accept="audio/midi">
             </div>
-            <div style="text-align: left;">
+            <label for="trackmodechoice" class="form-label">Track mode</label>
+            <div style="text-align: left;" id="trackmodechoice">
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="flexRadioDefault" id="trackmode1">
                     <label class="form-check-label" for="trackmode1">
@@ -33,6 +34,9 @@
                         All in one
                     </label>
                 </div>
+            </div>
+            <div id="chinsts">
+                                  
             </div>
     </div>
 
