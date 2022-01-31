@@ -1,5 +1,10 @@
 (async () => {
-var outseq = "";
+
+function roundNumber(number, digits) {
+    var multiple = Math.pow(10, digits);
+    var rndedNum = Math.round(number * multiple) / multiple;
+    return rndedNum;
+}
 
 function researchMidi (midi) {
     var tempo = Math.round(midi["header"]["tempos"][0]["bpm"]);
@@ -9,7 +14,8 @@ function researchMidi (midi) {
 }
 
 function convertMidiToSequence (midi, singulartrack, track) {
-    outseq += "!speed@" + midi["header"]["tempos"][0]["bpm"] + "|";
+    var outseq = "";
+    outseq += "!speed@" + researchMidi(midi)[0]*5 + "|";
     notescheatsheet = {
         "C": 0,
         "D": 1,
@@ -20,13 +26,18 @@ function convertMidiToSequence (midi, singulartrack, track) {
         "B": 6,
     }
     if (singulartrack) {
-        let channel = midi["tracks"][track]["channel"];
+        console.log(track, midi["tracks"][track-1]);
+        let channel = midi["tracks"][track-1]["channel"];
         let chinst = getChannelInst(channel);
-        for (let i = 0; i < midi["tracks"][track]["notes"].length; i++) {
-            let note = midi["tracks"][track]["notes"][i]["name"];
+        for (let i = 0; i < midi["tracks"][track-1]["notes"].length; i++) {
+            let note = midi["tracks"][track-1]["notes"][i]["name"];
             //pitch
             let pitch = notescheatsheet[note[0]];
             //octave
+            if (note.includes("#")) {
+                pitch += 0.5;
+                note = note.replace("#", "");
+            }
             let octave = Number(note.substring(1));
             if (octave > 5) {
                 pitch += 12*(octave-5);
@@ -35,19 +46,22 @@ function convertMidiToSequence (midi, singulartrack, track) {
             }
             //duration
             //in miliseconds
-            let duration = Math.round(midi["tracks"][track]["notes"][i]["duration"]*1000);
+            let duration = Math.round(midi["tracks"][track-1]["notes"][i]["duration"]*1000);
             //in beats
-            duration = Math.round(duration/midi["header"]["tempos"][0]["bpm"]);
+            //junk code alert!!!
+            duration = roundNumber(duration/midi["header"]["tempos"][0]["bpm"], Number(Math.round(duration/midi["header"]["tempos"][0]["bpm"]).toString().length)+1);
             //velocity
-            let velocity = Math.round(midi["tracks"][track]["notes"][i]["velocity"]*100);
+            let velocity = Math.round(midi["tracks"][track-1]["notes"][i]["velocity"]*100);
 
-            outseq += "!volume@"+velocity+"|!"+chinst+"@"+pitch+"|!stop@"+duration+"|";
+            outseq += "!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+duration+"|";
+            console.log("!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+duration+"|", note, octave);
         }
     }
+    return outseq;
 }
 
 function getChannelInst (channel) {
-    return document.getElementById("chinst"+channel.toString()).value();
+    return document.getElementById("chinst"+(channel+1).toString()).value;
 }
 
 //getting all of the sound names
@@ -78,17 +92,18 @@ for (let i = 0; i < soundnames.length; i++) {
 }
 
 var midifilein = document.getElementById("midifile");
+var midi;
 midifilein.addEventListener('change', function(e) {
     var midifilein1 = midifilein.files[0];
     var reader = new FileReader();
     reader.onload = function(e) {
-        const midi = new Midi(e.target.result);
+        midi = new Midi(e.target.result);
         //console.log(researchMidi(midi));
 
         //put channel # instrument choices in the page
         var chinsts = document.getElementById("chinsts");
         for (let i = 0; i < midi.tracks.length; i++) {
-            chinsts.innerHTML += `<label for="ch1inst" class="form-label">Channel `+(midi["tracks"][i]["channel"]+1).toString()+` instrument</label>
+            chinsts.innerHTML += `<label for="chinst`+(midi["tracks"][i]["channel"]+1).toString()+`" class="form-label">Channel `+(midi["tracks"][i]["channel"]+1).toString()+` instrument</label>
             <select class="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id=\"chinst`+(midi["tracks"][i]["channel"]+1).toString()+`\">`+soundopts+`</select>`;
         }
 
@@ -102,10 +117,20 @@ midifilein.addEventListener('change', function(e) {
 //check if button has been pressed
 var convertbutton = document.getElementById("convert");
 convertbutton.addEventListener('click', function(e) {
-    var trackmodechoice = document.getElementById("trackmodechoice");
-    if (trackmodechoice.trackmode.value == "2") {
+    let radios = document.getElementsByName("trackmode");
+    let radiochecked = 0;
+    for (var i = 0, length = radios.length; i < length; i++) {
+        if (radios[i].checked) {
+          // do whatever you want with the checked radio
+          radiochecked = radios[i].value;
+      
+          // only one radio can be logically checked, don't check the rest
+          break;
+        }
+      }
+    if (radiochecked == "2") {
         let track = document.getElementById("trackchoice").value;
-        convertMidiToSequence(midi, true, track);
+        console.log(convertMidiToSequence(midi, true, track));
     }
 });
 })();
