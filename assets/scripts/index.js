@@ -1,5 +1,18 @@
 (async () => {
 
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+  
+    element.style.display = 'none';
+    document.body.appendChild(element);
+      
+    element.click();
+  
+    document.body.removeChild(element);
+}
+
 function roundNumber(number, digits) {
     var multiple = Math.pow(10, digits);
     var rndedNum = Math.round(number * multiple) / multiple;
@@ -41,9 +54,9 @@ function convertMidiToSequence (midi, params, track, custrootoct, tempomularg) {
     } else {
         octave = 5;
     }
-    console.log(octave);
+    //console.log(octave);
     if (params[0]) {
-        console.log(track, midi["tracks"][track-1]);
+        //console.log(track, midi["tracks"][track-1]);
         let channel = midi["tracks"][track-1]["channel"];
         let chinst = getChannelInst(channel);
         for (let i = 0; i < midi["tracks"][track-1]["notes"].length; i++) {
@@ -77,7 +90,7 @@ function convertMidiToSequence (midi, params, track, custrootoct, tempomularg) {
             distance = nextnotestart - noteend;
             //convert distance to beats
             distance = distance/researchMidi(midi)[0];
-            console.log(Math.round(distance).toString().length);
+            //console.log(Math.round(distance).toString().length);
             distance = roundNumber(distance, Math.round(distance).toString().length);
 
             //velocity check!!!
@@ -85,10 +98,10 @@ function convertMidiToSequence (midi, params, track, custrootoct, tempomularg) {
             let velocity = Math.round(midi["tracks"][track-1]["notes"][i]["velocity"]*100);
 
             outseq += "!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+distance+"|";
-            console.log("!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+distance+"|", note, octave);
+            //console.log("!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+distance+"|", note, octave);
             } else {
                 outseq += chinst+"@"+pitch+"|!stop@"+distance+"|";
-                console.log(chinst+"@"+pitch+"|!stop@"+distance+"|");
+                //console.log(chinst+"@"+pitch+"|!stop@"+distance+"|");
             }
         }
     }
@@ -115,7 +128,7 @@ try {
 
 if (ok) {
   soundlist = data;
-  console.log(soundlist);
+  //console.log(soundlist);
   for (let i = 0; i < soundlist.length; i++) {
     soundnames.push(soundlist[i]["name"]);
   }
@@ -170,7 +183,7 @@ convertbutton.addEventListener('click', function(e) {
     if (tempomulchk) {
         tempomul = document.getElementById("tempomul").value;
     }
-    console.log(custrootoct, document.getElementById("customrootoctavechk").checked);
+    //console.log(custrootoct, document.getElementById("customrootoctavechk").checked);
     for (var i = 0, length = radios.length; i < length; i++) {
         if (radios[i].checked) {
           radiochecked = radios[i].value;
@@ -179,7 +192,8 @@ convertbutton.addEventListener('click', function(e) {
       }
     if (radiochecked == "2") {
         let track = document.getElementById("trackchoice").value;
-        console.log(convertMidiToSequence(midi, [true, custrootoctsw, tempomulchk, disablevel], track, custrootoct, tempomul));
+        var outseq = convertMidiToSequence(midi, [true, custrootoctsw, tempomulchk, disablevel], track, custrootoct, tempomul);
+        download("sequence.🗿", outseq);
     }
 });
 })();
