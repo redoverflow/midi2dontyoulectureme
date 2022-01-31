@@ -17,19 +17,20 @@
             <label for="trackmodechoice" class="form-label">Track mode</label>
             <div style="text-align: left;" id="trackmodechoice">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="trackmode1">
+                    <input class="form-check-input" type="radio" name="trackmode" id="trackmode1" name="1">
                     <label class="form-check-label" for="trackmode1">
                         One track per file (files will be put into a zip archive)
                     </label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="trackmode2" checked>
+                    <input class="form-check-input" type="radio" name="trackmode" id="trackmode2" name="2" checked>
                     <label class="form-check-label" for="trackmode2">
                         Singular track
                     </label>
+                    <input class="form-control form-control-sm" type="text" for="trackmode2" id="trackchoice" style="width: 10vmin">
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="trackmode3" checked>
+                    <input class="form-check-input" type="radio" name="trackmode" id="trackmode3" name="3">
                     <label class="form-check-label" for="trackmode3">
                         All in one
                     </label>
@@ -38,6 +39,8 @@
             <div id="chinsts">
                                   
             </div>
+            <p id="midiinfo"></p>
+            <button class="btn btn-primary" id="convert">Convert</button>
     </div>
 
     <script src="https://unpkg.com/underscore@1.13.2/underscore-umd-min.js"></script>
