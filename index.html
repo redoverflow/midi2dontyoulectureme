@@ -9,6 +9,7 @@
 <body>
     <div style="text-align: center;">
         <h1 style="margin-top: 10px;">MIDI to 🗿</h1>
+        <h4>Really awful to use, but it is what it is, <a href="https://github.com/redoverflow/midi2dontyoulectureme">you can help improve it though</a></h2>
         <div style="position: absolute; left: 50%; transform: translateX(-50%); max-width: 85%; min-width: 50%;">
             <div class="mb-3">
                 <label for="midifile" class="form-label">Pick a MIDI file to convert</label>
@@ -17,7 +18,7 @@
             <label for="trackmodechoice" class="form-label">Track mode</label>
             <div style="text-align: left;" id="trackmodechoice">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="trackmode" id="trackmode1" value="1">
+                    <input class="form-check-input" type="radio" name="trackmode" id="trackmode1" value="1" disabled>
                     <label class="form-check-label" for="trackmode1">
                         One track per file (files will be put into a zip archive)
                     </label>
@@ -30,10 +31,26 @@
                     <input class="form-control form-control-sm" type="text" for="trackmode2" id="trackchoice" style="width: 10vmin">
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="trackmode" id="trackmode3" value="3">
+                    <input class="form-check-input" type="radio" name="trackmode" id="trackmode3" value="3" disabled>
                     <label class="form-check-label" for="trackmode3">
                         All in one
                     </label>
+                </div>
+            </div>
+            <div style="text-align: left;">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="customrootoctavechk">
+                    <label class="form-check-label" for="customrootoctavechk">Custom root octave</label>
+                    <input class="form-control form-control-sm" type="text" for="customrootoctavechk" id="customrootoctave" style="width: 10vmin">
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="tempomulchk">
+                    <label class="form-check-label" for="tempomulchk">Tempo multiplier</label>
+                    <input class="form-control form-control-sm" type="text" for="tempomulchk" id="tempomul" style="width: 10vmin">
+                </div>
+                <div>
+                    <input class="form-check-input" type="checkbox" value="" id="disablevel">
+                    <label class="form-check-label" for="disablevel">Disable velocity (decreases output size)</label>
                 </div>
             </div>
             <div id="chinsts">

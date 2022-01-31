@@ -13,19 +13,36 @@ function researchMidi (midi) {
     return [tempo, trackscount, channelcount];
 }
 
-function convertMidiToSequence (midi, singulartrack, track) {
+function convertMidiToSequence (midi, params, track, custrootoct, tempomularg) {
     var outseq = "";
-    outseq += "!speed@" + researchMidi(midi)[0]*10 + "|";
+    let tempomul = 10;
+    if (params[2]) {
+        tempomul = tempomularg;
+    }
+    outseq += "!speed@" + researchMidi(midi)[0]*tempomul+ "|";
     notescheatsheet = {
         "C": 0,
-        "D": 1,
-        "E": 2,
-        "F": 3,
-        "G": 4,
-        "A": 5,
-        "B": 6,
+        "C#": 1,
+        "D": 2,
+        "D#": 3,
+        "E": 4,
+        "F": 5,
+        "F#": 6,
+        "G": 7,
+        "G#": 8,
+        "A": 9,
+        "A#": 10,
+        "B": 11
     }
-    if (singulartrack) {
+
+    let octave;
+    if (params[1]) {
+        octave = custrootoct;
+    } else {
+        octave = 5;
+    }
+    console.log(octave);
+    if (params[0]) {
         console.log(track, midi["tracks"][track-1]);
         let channel = midi["tracks"][track-1]["channel"];
         let chinst = getChannelInst(channel);
@@ -34,31 +51,48 @@ function convertMidiToSequence (midi, singulartrack, track) {
             //pitch
             let pitch = notescheatsheet[note[0]];
             //octave
-            if (note.includes("#")) {
-                pitch += 0.5;
-                note = note.replace("#", "");
-            }
-            let octave = Number(note.substring(1));
-            if (octave == 5) {
+            let noteoctave = Number(note.replace("#", "").substring(1));
+            if (noteoctave == octave) {
                 //no pitching needed
-            } else if (octave > 5) {
-                pitch += 12*(octave-5);
-            } else if (octave < 5) {
-                pitch -= 12*(5-octave);
+            } else if (noteoctave > 5) {
+                pitch += 12*(noteoctave-octave);
+            } else if (noteoctave < 5) {
+                pitch -= 12*(octave-noteoctave);
             }
             //duration
             //in miliseconds
             let duration = Math.round(midi["tracks"][track-1]["notes"][i]["duration"]*1000);
             //in beats
-            duration = roundNumber(duration/researchMidi(midi)[0], Number(Math.round(duration/researchMidi(midi)[0]).toString().length)+1);
-            //velocity
+            duration = duration/researchMidi(midi)[0];
+            //distance between notes
+            let distance = duration;
+            let notestart = midi["tracks"][track-1]["notes"][i]["time"]*1000;
+            let noteend = notestart + duration;
+            let nextnotestart;
+            if (midi["tracks"][track-1]["notes"][i+1] == undefined) {
+                nextnotestart = noteend;
+            } else {
+                nextnotestart = midi["tracks"][track-1]["notes"][i+1]["time"]*1000;
+            }
+            distance = nextnotestart - noteend;
+            //convert distance to beats
+            distance = distance/researchMidi(midi)[0];
+            console.log(Math.round(distance).toString().length);
+            distance = roundNumber(distance, Math.round(distance).toString().length);
+
+            //velocity check!!!
+            if (!params[3]) {
             let velocity = Math.round(midi["tracks"][track-1]["notes"][i]["velocity"]*100);
 
-            outseq += "!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+duration+"|";
-            console.log("!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+duration+"|", note, octave);
+            outseq += "!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+distance+"|";
+            console.log("!volume@"+velocity+"|"+chinst+"@"+pitch+"|!stop@"+distance+"|", note, octave);
+            } else {
+                outseq += chinst+"@"+pitch+"|!stop@"+distance+"|";
+                console.log(chinst+"@"+pitch+"|!stop@"+distance+"|");
+            }
         }
     }
-    return outseq;
+    return outseq.substring(0, outseq.length-1);
 }
 
 function getChannelInst (channel) {
@@ -104,11 +138,15 @@ midifilein.addEventListener('change', function(e) {
         //put channel # instrument choices in the page
         var chinsts = document.getElementById("chinsts");
         chinsts.innerHTML = "";
+        let channels = [];
         for (let i = 0; i < midi.tracks.length; i++) {
-            chinsts.innerHTML += `<label for="chinst`+(midi["tracks"][i]["channel"]+1).toString()+`" class="form-label">Channel `+(midi["tracks"][i]["channel"]+1).toString()+` instrument</label>
-            <select class="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id=\"chinst`+(midi["tracks"][i]["channel"]+1).toString()+`\">`+soundopts+`</select>`;
+            channels.push(midi.tracks[i]["channel"]);
         }
-
+        channels = _.uniq(channels);
+        for (let i = 0; i < channels.length; i++) {
+            chinsts.innerHTML += `<label for="chinst`+(channels[i]+1).toString()+`" class="form-label">Channel `+(channels[i]+1).toString()+` instrument</label>
+            <select class="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id=\"chinst`+(channels[i]+1).toString()+`\">`+soundopts+`</select>`;
+        }
         //add midi info to the page
         document.getElementById("midiinfo").innerHTML = `<p>Tempo: `+researchMidi(midi)[0]+`</p>
         <p>Tracks: `+researchMidi(midi)[1]+`</p>
@@ -121,6 +159,18 @@ var convertbutton = document.getElementById("convert");
 convertbutton.addEventListener('click', function(e) {
     let radios = document.getElementsByName("trackmode");
     let radiochecked = 0;
+    let custrootoctsw = document.getElementById("customrootoctavechk").checked;
+    let custrootoct;
+    let tempomulchk = document.getElementById("tempomulchk").checked;
+    let tempomul;
+    let disablevel = document.getElementById("disablevel").checked;
+    if (custrootoctsw) {
+        custrootoct = document.getElementById("customrootoctave").value;
+    }
+    if (tempomulchk) {
+        tempomul = document.getElementById("tempomul").value;
+    }
+    console.log(custrootoct, document.getElementById("customrootoctavechk").checked);
     for (var i = 0, length = radios.length; i < length; i++) {
         if (radios[i].checked) {
           radiochecked = radios[i].value;
@@ -129,7 +179,7 @@ convertbutton.addEventListener('click', function(e) {
       }
     if (radiochecked == "2") {
         let track = document.getElementById("trackchoice").value;
-        console.log(convertMidiToSequence(midi, true, track));
+        console.log(convertMidiToSequence(midi, [true, custrootoctsw, tempomulchk, disablevel], track, custrootoct, tempomul));
     }
 });
 })();
